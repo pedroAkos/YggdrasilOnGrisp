@@ -16,6 +16,7 @@
 
 typedef struct _neighbour_ip {
   char ip[16];
+  char* hostname;
 }neigh_ip;
 
 static bool equal_ip(neigh_ip* n, const char* ip) {
@@ -24,6 +25,8 @@ static bool equal_ip(neigh_ip* n, const char* ip) {
 
 typedef struct _discover_ip_state {
 	const char* my_ip;
+  const char* my_hostname;
+  uint8_t hostname_len;
 	list* neighbours;
 	short proto_id;
 	YggTimer announce;
@@ -33,6 +36,11 @@ static void ev_neigh(neigh_ip* n, short proto_id, discovery_events ev_t) {
   YggEvent ev;
   YggEvent_init(&ev, proto_id, ev_t);
   YggEvent_addPayload(&ev, n->ip, 16);
+  int len = strlen(n->hostname)+1;
+  char zero = '\0';
+  YggEvent_addPayload(&ev, &len, sizeof(int));
+  YggEvent_addPayload(&ev, n->hostname, len);
+  YggEvent_addPayload(&ev, &zero, 1);
 
   deliverEvent(&ev);
   YggEvent_freePayload(&ev);
@@ -42,15 +50,19 @@ static short process_msg(YggMessage* msg, discover_ip_state* state) {
 
   char ip[16];
   bzero(ip, 16);
-	YggMessage_readPayload(msg, NULL, ip, 16);
+	void* ptr = YggMessage_readPayload(msg, NULL, ip, 16);
 
   if(list_find_item(state->neighbours, (comparator_function) equal_ip, ip) == NULL) {
 
-//#ifdef DEGUB
+#ifdef DEGUB
 		printf("New neighbour\n");
-//#endif
+#endif
     neigh_ip* n = malloc(sizeof(neigh_ip));
     memcpy(n->ip, ip, 16);
+    uint8_t len;
+    ptr = YggMessage_readPayload(msg, ptr, &len, sizeof(uint8_t));
+    n->hostname = malloc(len);
+    YggMessage_readPayload(msg, ptr, n->hostname, len);
 
     list_add_item_to_head(state->neighbours, n);
 
@@ -66,6 +78,8 @@ static short process_timer(YggTimer* timer, discover_ip_state* state) {
 	YggMessage msg;
 	YggMessage_initBcast(&msg, state->proto_id);
 	YggMessage_addPayload(&msg, (void*) state->my_ip, 16);
+  YggMessage_addPayload(&msg, (void*) &state->hostname_len, sizeof(uint8_t));
+  YggMessage_addPayload(&msg, (void*) state->my_hostname, state->hostname_len);
 
 	ygg_dispatch(&msg);
 
@@ -116,6 +130,9 @@ proto_def* discover_ip_init(void* args) {
 
 	discover_ip_state* state = malloc(sizeof(discover_ip_state));
   state->my_ip = getChannelIpAddress();
+  state->my_hostname = getHostname();
+  state->hostname_len = strlen(state->my_hostname);
+
 	state->neighbours = list_init();
 	state->proto_id = PROTO_DISCOVER_IP_ID;
 

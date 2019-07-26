@@ -2,6 +2,7 @@
 
 % Add hosts
 {host, {169,254,52,90}, ["MacBook-Air"]}.
+%{host, {169,254,49,249}, ["g1"]}.
 
 % Do not monitor the hosts file
 {hosts_file, ""}.

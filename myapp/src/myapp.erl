@@ -14,9 +14,20 @@
 
 %--- Callbacks -----------------------------------------------------------------
 
-start(_Type, _Args) -> myapp_sup:start_link().
+start(_Type, _Args) ->
+  grisp_led:color(1, blue),
+  myapp_sup:start_link().
 
 stop(_State) -> ok.
+
+add_host(IP, NAME) ->
+  io:format("Adding host ~s@~s ~n", [IP, NAME]),
+  case inet:parse_address(IP) of
+    {ok, {XX,YY,ZZ,WW}} ->
+      inet_db:add_host({XX,YY,ZZ,WW}, [NAME]);
+    {error, einval} ->
+      logger:error("Error parsing ip: ~s ~n ", [IP])
+  end.
 
 loop() ->
   receive
@@ -24,6 +35,8 @@ loop() ->
       io:format("~s~n", [String]);
     {notify, String} ->
       io:format("~s~n", [String]);
+    {notify, IP, NAME} ->
+      add_host(IP, NAME);
     true ->
       io:format("Received something~n")
     end,
@@ -42,7 +55,6 @@ get_soname() ->
 
 
 init_ygg_nif() ->
-  grisp_led:color(1, blue),
   SoName = get_soname(),
   ok = erlang:load_nif(SoName, 0),
   init_ygg().

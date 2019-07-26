@@ -4,6 +4,7 @@
 #include <yggdrasil/api.h>
 #include <pthread.h>
 #include <time.h>
+#include <string.h>
 
 int inited = 0;
 
@@ -90,8 +91,18 @@ static void handle_comm(erlang_pid* p) {
   if(msg->type == NOTIFY) {
     ErlNifEnv* env = enif_alloc_env();
     ERL_NIF_TERM noti = enif_make_atom(env, "notify");
-    ERL_NIF_TERM value = enif_make_string(env, msg->content, ERL_NIF_LATIN1);
-    ERL_NIF_TERM tuple = enif_make_tuple2(env, noti, value);
+    char ip[16];
+    void* ptr = msg->content;
+    memcpy(ip, ptr, 16); ptr+=16;
+    int hostname_len;
+    memcpy(&hostname_len, ptr, sizeof(int)); ptr+=sizeof(int);
+    char* hostname[hostname_len];
+    memcpy(hostname, ptr, hostname_len);
+
+    ERL_NIF_TERM ip_term = enif_make_string(env, ip, ERL_NIF_LATIN1);
+    ERL_NIF_TERM hostname_term = enif_make_string(env, hostname, ERL_NIF_LATIN1);
+
+    ERL_NIF_TERM tuple = enif_make_tuple3(env, noti, ip_term, hostname_term);
     enif_send(NULL, &p->pid, env, tuple);
     enif_free_env(env);
   } else if(msg->type = NET_MESSAGE) {

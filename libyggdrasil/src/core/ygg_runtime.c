@@ -1459,7 +1459,7 @@ int ygg_runtime_start() {
 		pthread_attr_init(&patribute);
 		err = pthread_create(it->pthread, &patribute, (gen_function) it->proto_main_loop, (void *)(it->args));
 		//pthread_set_name_np(it->pthread, it->protocol->definition->proto_name);
-		printf("self: %lu THREAD: %lu  proto: %s\n", pthread_self(), it->pthread, it->protocol->definition->proto_name);
+		//printf("self: %lu THREAD: %lu  proto: %s\n", pthread_self(), it->pthread, it->protocol->definition->proto_name);
 		pthread_setname_np( it->pthread, it->protocol->definition->proto_name );
 		if(err != 0){
 			switch(err){

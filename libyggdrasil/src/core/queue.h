@@ -30,8 +30,8 @@ queue_t* queue_init(unsigned short pid, unsigned short capacity);
 void queue_destroy(queue_t* q);
 void queue_pop(queue_t* q, queue_t_elem* elem);
 void queue_push(queue_t* q, queue_t_elem* elem);
-short queue_size(queue_t* q, queue_t_elem_type type);
-short queue_totalSize(queue_t* q);
+unsigned short queue_size(queue_t* q, queue_t_elem_type type);
+unsigned short queue_totalSize(queue_t* q);
 void destroy_inner_queue(queue_t* q, queue_t_elem_type type);
 int queue_try_timed_pop(queue_t* q, struct timespec* uptotime, queue_t_elem* elem);
 

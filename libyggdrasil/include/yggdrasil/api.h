@@ -16,7 +16,7 @@ typedef struct __msg_type {
 void init_yggdrasil(const char* ssid, const char* wifi_channel);
 
 /* Start Yggdrasil Stack */
-void start_yggdrasil();
+void start_yggdrasil(void);
 
 /* Send a message to the network through Yggdrasil */
 short send_msg(void* msg_contents, unsigned short msg_contents_size);
@@ -24,9 +24,9 @@ short send_msg(void* msg_contents, unsigned short msg_contents_size);
 /* Receive a message from Yggdrasil */
 /* This call is blocking */
 /* TODO add a data structure the define what is being received */
-msg_type* deliver_msg();
+msg_type* deliver_msg(void);
 
 
-const char* get_ip();
+const char* get_ip(void);
 
 #endif /* YGGDRASIL_API_H_ */

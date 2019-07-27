@@ -28,7 +28,7 @@ typedef struct _list {
 
 typedef bool (*comparator_function)(void*, void*);
 
-list* list_init();
+list* list_init(void);
 
 void list_add_item_to_head(list* l, void* item);
 

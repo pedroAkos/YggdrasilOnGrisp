@@ -4,14 +4,13 @@
 #include "protocols/discovery.h"
 
 queue_t* inBox =  NULL;
-short myId = 400;
+unsigned short myId = 400;
 
 void init_yggdrasil(const char* ssid, const char* wifi_channel) {
-  Channel ch;
   NetworkConfig ntconf;
-  ntconf.wifi_channel = wifi_channel;
-  ntconf.name = ssid;
-  ntconf.filter = YGG_filter;
+  ntconf.wifi_channel = (char*)(unsigned long) wifi_channel;
+  ntconf.name = (char*)(unsigned long) ssid;
+  ntconf.filter = (struct bpf_insn*)(unsigned long) YGG_filter;
   ntconf.filter_len = ygg_bpf_filter_len;
 
   ygg_runtime_init(&ntconf);
@@ -34,7 +33,7 @@ void init_yggdrasil(const char* ssid, const char* wifi_channel) {
 
 }
 
-void start_yggdrasil() {
+void start_yggdrasil(void) {
   ygg_log("YGGDRASIL", "NOTICE", "STARTING RUNTIME");
   ygg_runtime_start();
 }
@@ -55,7 +54,7 @@ short send_msg(void* msg_contents, unsigned short msg_contents_size) {
 }
 
 
-msg_type* deliver_msg() {
+msg_type* deliver_msg(void) {
   if(!inBox)
     return NULL;
 
@@ -83,6 +82,6 @@ msg_type* deliver_msg() {
 }
 
 
-const char* get_ip() {
+const char* get_ip(void) {
   return getChannelIpAddress();
 }

@@ -28,12 +28,12 @@ void ygg_loginit(){
 	out = stdout;
 
 	FILE* f = fopen("/etc/hostname","r");
-	if(f > 0) {
+	if(f > (FILE*) 0) {
 		struct stat s;
 		if(fstat(fileno(f), &s) < 0){
 			perror("FSTAT");
 		}
-		hostname = malloc(s.st_size+1);
+		hostname = malloc((size_t) (s.st_size+1));
 		if(hostname == NULL) {
 
 			ygg_log("YGG_RUNTIME", "INIT", "Hostname is NULL");
@@ -41,12 +41,12 @@ void ygg_loginit(){
 			exit(1);
 		}
 
-		memset(hostname, 0, s.st_size+1);
-		if(fread(hostname, 1, s.st_size, f) <= 0){
+		memset(hostname, 0, (size_t) (s.st_size+1));
+		if(fread(hostname, 1, (size_t) s.st_size, f) <= 0){
 			if(s.st_size < 8) {
 				free(hostname);
-				hostname = malloc(9);
-				memset(hostname,0,9);
+				hostname = malloc((size_t) 9);
+				memset(hostname,0,(size_t) 9);
 			}
 			int r = rand() % 10000;
 			sprintf(hostname, "host%04d", r);
@@ -175,13 +175,13 @@ void ygg_logflush_stdout() {
 
 void setNanoTime(struct timespec* time, unsigned long nano) {
 
-	unsigned long current_nano = time->tv_nsec;
+	unsigned long current_nano = (unsigned long) time->tv_nsec;
 	current_nano += nano;
 	while(current_nano >= NANOSEC) {
 		time->tv_sec ++;
 		current_nano -= NANOSEC;
 	}
-	time->tv_nsec = current_nano;
+	time->tv_nsec = (long) current_nano;
 
 }
 

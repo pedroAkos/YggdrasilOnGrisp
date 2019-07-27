@@ -31,7 +31,7 @@ void inner_queue_init(inner_queue_t* iq, unsigned short capacity, unsigned short
 	iq->max_count  = capacity;
 	iq->element_size = element_size;
 	iq->occupation = 0;
-	iq->data = malloc(element_size * capacity);
+	iq->data = malloc((size_t) (element_size * capacity));
 	iq->writer = 0;
 	iq->reader = 0;
 }
@@ -49,7 +49,7 @@ queue_t* queue_init(unsigned short pid, unsigned short capacity) {
 	q->pid = pid;
 	int i;
 	for(i = 0; i < TYPE_MAX; i++) {
-		inner_queue_init(&(q->iqs[i]), capacity, size_of_element_types[i]);
+		inner_queue_init(&(q->iqs[i]), capacity, (unsigned short) (size_of_element_types[i]));
 
 	}
 	sem_init(&q->full, 0, 0);
@@ -124,23 +124,23 @@ void queue_push(queue_t* q, queue_t_elem* elem) {
 	pthread_mutex_lock(&q->lock);
 
 	if(target->occupation >= target->max_count) {
-		void* newdata = malloc(target->element_size * target->max_count * 2);
+		void* newdata = malloc((size_t) (target->element_size * target->max_count * 2));
 
 		if( target-> reader == target->writer && target->writer != 0) {
 			memcpy(newdata, target->data + (target->reader * target->element_size),
-					target->element_size * (target->max_count - target->reader));
+					(size_t) (target->element_size * (target->max_count - target->reader)));
 
 			memcpy(newdata + ((target->max_count - target->reader) * target->element_size), target->data,
-					target->element_size * target->reader);
+					(size_t) (target->element_size * target->reader));
 			target->reader = 0;
 		} else {
-			memcpy(newdata, target->data, target->element_size * target->max_count);
+			memcpy(newdata, target->data, (size_t) (target->element_size * target->max_count));
 		}
 
 		free(target->data);
 		target->data = newdata;
 		target->writer = target->max_count;
-		target->max_count = target->max_count * 2;
+		target->max_count = (unsigned short) (target->max_count * 2);
 	}
 
 	memcpy(target->data + (target->writer * target->element_size), &elem->data, target->element_size);
@@ -181,19 +181,19 @@ void queue_push(queue_t* q, queue_t_elem* elem) {
 
 }
 
-short queue_size(queue_t* q, queue_t_elem_type type) {
+unsigned short queue_size(queue_t* q, queue_t_elem_type type) {
 	pthread_mutex_lock(&q->lock);
 	unsigned short s = q->iqs[type].occupation;
 	pthread_mutex_unlock(&q->lock);
 	return s;
 }
 
-short queue_totalSize(queue_t* q) {
+unsigned short queue_totalSize(queue_t* q) {
 	pthread_mutex_lock(&q->lock);
 	unsigned short s = q->iqs[0].occupation;
 	int i;
 	for(i = 1; i < TYPE_MAX; i++)
-		s += q->iqs[i].occupation;
+		s = (unsigned short) (s + q->iqs[i].occupation);
 	pthread_mutex_unlock(&q->lock);
 	return s;
 }

@@ -13,6 +13,7 @@
 #define PROTO_DATA_STRUCT_H_
 
 #include <uuid/uuid.h>
+#include <limits.h>
 #include "ygg_low_level.h"
 
 
@@ -49,7 +50,7 @@ typedef struct _YggTimer {
 }YggTimer;
 
 typedef struct _YggEvent {
-	short proto_origin; //the protocol who created the event
+	unsigned short proto_origin; //the protocol who created the event
 	unsigned short proto_dest; //the protocol to be delivered to (filled by runtime)
 	unsigned short notification_id; //the event ID
 	unsigned short length; //the length of the payload
@@ -78,7 +79,7 @@ typedef struct _YggRequest {
  * @param msg the message
  * @param protoID the protocol ID that requested the initializaion
  */
-void YggMessage_initBcast(YggMessage* msg, short protoID);
+void YggMessage_initBcast(YggMessage* msg, unsigned short protoID);
 
 /**
  * Initialize an YggMessage with the destination given in addr
@@ -86,7 +87,7 @@ void YggMessage_initBcast(YggMessage* msg, short protoID);
  * @param addr the address to be sent to
  * @param protoID the protocol ID that requested the initialization
  */
-void YggMessage_init(YggMessage* msg, unsigned char addr[6], short protoID);
+void YggMessage_init(YggMessage* msg, unsigned char addr[6], unsigned short protoID);
 
 /**
  * Adds the contents in payload to the message payload
@@ -115,7 +116,7 @@ void* YggMessage_readPayload(YggMessage* msg, void* ptr, void* buffer, unsigned 
  * @param protoOrigin the protocol who requested the timer
  * @param protoDest the protocol to whom it will be delivered
  */
-void YggTimer_init(YggTimer* timer, short protoOrigin, short protoDest);
+void YggTimer_init(YggTimer* timer, unsigned short protoOrigin, unsigned short protoDest);
 
 /**
  * Initialize a timer with the proto origin and proto destination
@@ -124,7 +125,7 @@ void YggTimer_init(YggTimer* timer, short protoOrigin, short protoDest);
  * @param protoOrigin the protocol who requested the timer
  * @param protoDest the protocol to whom it will be delivered
  */
-void YggTimer_init_with_uuid(YggTimer* timer, uuid_t uuid, short protoOrigin, short protoDest);
+void YggTimer_init_with_uuid(YggTimer* timer, uuid_t uuid, unsigned short protoOrigin, unsigned short protoDest);
 
 /**
  * Set a timer to fire in firstNotification microseconds, and the repeat interval in microseconds
@@ -185,7 +186,7 @@ void YggTimer_freePayload(YggTimer* timer);
  * @param protoOrigin the protocol generating the event
  * @param notification_id the notification code that identifies the event
  */
-void YggEvent_init(YggEvent* ev, short protoOrigin, short notification_id);
+void YggEvent_init(YggEvent* ev, unsigned short protoOrigin, unsigned short notification_id);
 
 /**
  * Adds payload to the existing payload of the event structure
@@ -223,7 +224,7 @@ void YggEvent_freePayload(YggEvent* ev);
  * @param request the request type, if it is a REQUEST or a REPLY
  * @param request_id the id code of the REQUEST/REPLY interaction
  */
-void YggRequest_init(YggRequest* req, short protoOrigin, short protoDest, request_type request, short request_id);
+void YggRequest_init(YggRequest* req, unsigned short protoOrigin, unsigned short protoDest, request_type request, short request_id);
 
 /**
  * Adds payload to the existing payload of the request structure
@@ -261,7 +262,7 @@ void YggRequest_freePayload(YggRequest* req);
  * @param newDest The new destination of the message
  * @return SUCCESS if the serialization concluded, FALSE if the new payload size if bigger than the constant MAX_PAYLOAD
  */
-int pushPayload(YggMessage* msg, char* buffer, unsigned short len, short protoID, WLANAddr* newDest);
+int pushPayload(YggMessage* msg, char* buffer, unsigned short len, unsigned short protoID, WLANAddr* newDest);
 
 /**
  * Deserializes part of the message content that was pushed, and restores the original headers and original payload
@@ -272,7 +273,7 @@ int pushPayload(YggMessage* msg, char* buffer, unsigned short len, short protoID
  */
 int popPayload(YggMessage* msg, char* buffer, unsigned short readlen);
 
-int pushEmptyPayload(YggMessage* msg, short protoID);
+int pushEmptyPayload(YggMessage* msg, unsigned short protoID);
 int popEmptyPayload(YggMessage* msg);
 
 #endif /* PROTO_DATA_STRUCT_H_ */

@@ -175,11 +175,11 @@ typedef struct _Channel {
     int sockid_recv;
     int sockid_send;
     // interface index
-    int ifindex;
+    unsigned int ifindex;
     // mac address
     WLANAddr hwaddr;
     // maximum transmission unit
-    int mtu;
+    unsigned int mtu;
     //ip address (if any)
     char ip_addr[INET_ADDRSTRLEN];
 } Channel;
@@ -213,10 +213,10 @@ typedef struct _NetworkConfig {
  *********************************************************/
  int str2wlan(char machine[], char human[]);
 char* wlan2asc(WLANAddr* addr, char str[]);
-int isYggMessage(void* buffer, int bufferLen);
+int isYggMessage(void* buffer, unsigned int bufferLen);
 int getInterfaceID(Channel* ch, char* ifname);
 int getInterfaceMACAddress(Channel* ch, char* ifname);
-int getInterfaceMTU(Channel* ch, char* ifname);
+int getInterfaceMTU(Channel* ch);
 /*********************************************************
  * Setup
  *********************************************************/
@@ -225,7 +225,7 @@ int getInterfaceMTU(Channel* ch, char* ifname);
   * YggPhyMessage
   *************************************************/
  int initYggPhyMessage(YggPhyMessage *msg); //initializes an empty payload lkmessage
- int initYggPhyMessageWithPayload(YggPhyMessage *msg, char* buffer, short bufferlen); //initializes a non empty payload lkmessage
+ int initYggPhyMessageWithPayload(YggPhyMessage *msg, char* buffer, unsigned short bufferLen); //initializes a non empty payload lkmessage
 
  int addPayload(YggPhyMessage *msg, char* buffer);
  int deserializeYggPhyMessage(YggPhyMessage *msg, unsigned short msglen, void* buffer, int bufferLen);

@@ -37,17 +37,17 @@ typedef void (*destroy_function)(void*);
 #define FAILED 0
 
 
-const char* getHostname();
+const char* getHostname(void);
 
 void ygg_log_change_output(FILE* _out);
 
-void ygg_loginit();
+void ygg_loginit(void);
 void ygg_log(char* proto, char* event, char* desc);
 void ygg_log_multi(int n, ...);
-void ygg_logflush();
+void ygg_logflush(void);
 
 void ygg_log_stdout(char* proto, char* event, char* desc);
-void ygg_logflush_stdout();
+void ygg_logflush_stdout(void);
 
 void setNanoTime(struct timespec* time, unsigned long nano);
 
@@ -65,6 +65,6 @@ int setDestToBroadcast(YggMessage* msg);
 void setBcastAddr(WLANAddr* addr);
 
 int getRandomInt(int min, int max);
-double getRandomProb();
+double getRandomProb(void);
 
 #endif /* CORE_UTILS_H_ */

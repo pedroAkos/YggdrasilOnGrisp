@@ -110,12 +110,12 @@
  	}
  	// assign the result to the member "data"
  	for (i=0; i < 6; i++) {
- 		machine[i]=a[i];
+ 		machine[i]= (char) a[i];
  	}
  	return 0;
  }
 
- int isYggMessage(void* buffer, int bufferLen) {
+ int isYggMessage(void* buffer, unsigned int bufferLen) {
  	if(bufferLen < WLAN_HEADER_LEN+YGG_HEADER_LEN)
  		return 0;
 
@@ -140,30 +140,29 @@
  	return SUCCESS;
  }
 
- int initYggPhyMessageWithPayload(YggPhyMessage *msg, char* buffer, short bufferlen) {
+ int initYggPhyMessageWithPayload(YggPhyMessage *msg, char* buffer, unsigned short bufferLen) {
 
- 	int len = bufferlen;
- 	if(len > MAX_PAYLOAD)
+ 	if(bufferLen > MAX_PAYLOAD)
  		return FAILED;
 
  	msg->phyHeader.type = IP_TYPE;
  	char id[] = AF_YGG_ARRAY;
  	memcpy(msg->yggHeader.data, id, YGG_HEADER_LEN);
- 	msg->dataLen = len;
- 	memcpy(msg->data, buffer, len);
+ 	msg->dataLen = bufferLen;
+ 	memcpy(msg->data, buffer, bufferLen);
 
  	return SUCCESS;
  }
 
  int addPayload(YggPhyMessage *msg, char* buffer) {
- 	int len = strlen(buffer);
+ 	size_t len = strlen(buffer);
  	if(len > MAX_PAYLOAD)
  		return -1;
 
- 	msg->dataLen = len+1;
- 	memcpy(msg->data, buffer, len+1);
+ 	msg->dataLen = (unsigned short) (len+1);
+ 	memcpy(msg->data, buffer, (size_t) (len+1));
 
- 	return len;
+ 	return (int) len;
  }
 
 /**********************************************************
@@ -225,7 +224,7 @@ int getInterfaceMACAddress(Channel* ch, char* interface){
   */
 }
 
-int getInterfaceMTU(Channel* ch, char* interface) {
+int getInterfaceMTU(Channel* ch) {
 	if (ioctl(ch->sockid_recv, BIOCGBLEN, &ch->mtu) == -1) {
 		lk_error_code = NO_IF_MTU_ERR;
 		return FAILED;
@@ -246,7 +245,7 @@ int set_ip_addr(Channel* ch)
 
    for(ifaptr = ifap; ifaptr != NULL; ifaptr = (ifaptr)->ifa_next) {
            if (!strcmp((ifaptr)->ifa_name, ifname) && (((ifaptr)->ifa_addr)->sa_family == AF_INET)) {
-             struct sockaddr_in *sa = (struct sockaddr_in *) ifaptr->ifa_addr;
+             struct sockaddr_in *sa = (struct sockaddr_in *) (unsigned long) ifaptr->ifa_addr;
              char* addr = inet_ntoa(sa->sin_addr);
              printf("Interface: %s\tAddress: %s\n", ifaptr->ifa_name, addr);
              memcpy(ch->ip_addr, addr, strlen(addr));
@@ -259,11 +258,10 @@ int set_ip_addr(Channel* ch)
            }
    }
 
+  }
 
 	bzero(ch->ip_addr, INET_ADDRSTRLEN);
 	return FAILED;
-
-  }
 }
 
 /*
@@ -363,21 +361,21 @@ static void
 bpf_dump(const struct bpf_program *p, int option)
 {
 	struct bpf_insn *insn;
-	int i;
-	int n = p->bf_len;
+	unsigned int i;
+	unsigned int n = p->bf_len;
 
 	insn = p->bf_insns;
 	if (option > 2) {
 		printf("%d\n", n);
 		for (i = 0; i < n; ++insn, ++i) {
-			printf("%u %u %u %u\n", insn->code,
+			printf("%u %u %u %lu\n", insn->code,
 			       insn->jt, insn->jf, insn->k);
 		}
 		return ;
 	}
 	if (option > 1) {
 		for (i = 0; i < n; ++insn, ++i)
-			printf("{ 0x%x, %d, %d, 0x%08x },\n",
+			printf("{ 0x%x, %d, %d, 0x%08lx },\n",
 			       insn->code, insn->jt, insn->jf, insn->k);
 		return;
 	}
@@ -452,11 +450,11 @@ static uint64_t mac2int(const uint8_t hwaddr[])
 
 int setupChannelNetwork(Channel* ch, NetworkConfig* ntconf) {
 
-  int seed = mac2int(ch->hwaddr.data);
+  unsigned int seed = (unsigned int) mac2int(ch->hwaddr.data);
   srand(seed);
 
-  int ip1 = rand()%256;
-  int ip2 = rand()%256;
+  uint8_t ip1 = (uint8_t) rand()%256;
+  uint8_t ip2 = (uint8_t) rand()%256;
 
   bzero(ntconf->ip_addr, 16);
   sprintf(ntconf->ip_addr, "169.254.%d.%d", ip1, ip2);
@@ -500,8 +498,8 @@ int createChannel(Channel* ch, char* interface) {
   /* http://bastian.rieck.ru/howtos/bpf/ */
   const char *bpf_path = "/dev/bpf";
 //  int fd = open(bpf_path, O_WRONLY, 0);
-  char buf[10];
-  bzero(buf, 10);
+  char buf[16];
+  bzero(buf, 16);
 
   printf("path: %s\n", bpf_path);
 	ch->sockid_recv = open(bpf_path, O_RDONLY);
@@ -520,7 +518,7 @@ int createChannel(Channel* ch, char* interface) {
 
     mode_t mode = 0666;
     mode |= S_IFCHR; //character device
-    dev_t dev = domakedev(23, i); //23 is the assigned number for bpf devices
+    dev_t dev = domakedev(23, (unsigned long) i); //23 is the assigned number for bpf devices
     bpf = mknod(buf, mode, dev);
     printf("attempt mknode: %s\n", buf);
     if(bpf != -1) {
@@ -538,7 +536,7 @@ int createChannel(Channel* ch, char* interface) {
 
   }
 
-    if(ch->sockid_recv & ch->sockid_send < 0)
+    if(ch->sockid_recv & (ch->sockid_send < 0))
 		  return ch->sockid_send;
 
   printf("Created socket\n");
@@ -557,7 +555,7 @@ int createChannel(Channel* ch, char* interface) {
 	printf("Interface MAC address is %s\n",wlan2asc(&(ch->hwaddr),addr));
 	free(addr);
 
-	ret = getInterfaceMTU(ch, interface);
+	ret = getInterfaceMTU(ch);
 	if(ret != SUCCESS) return 0;
 
 	printf("Interface MTU is %d\n",ch->mtu);
@@ -581,8 +579,8 @@ int bindChannel(Channel* ch){
   if (ioctl(ch->sockid_recv, BIOCSETIF, &bind_if) < 0 )
     return SOCK_BIND_ERR;
 
-    if (ioctl(ch->sockid_send, BIOCSETIF, &bind_if) < 0 )
-      return SOCK_BIND_ERR;
+  if (ioctl(ch->sockid_send, BIOCSETIF, &bind_if) < 0 )
+    return SOCK_BIND_ERR;
 
   int flags = 1;
   int ret = ioctl(ch->sockid_recv, BIOCIMMEDIATE, &flags);
@@ -617,12 +615,12 @@ int bindChannel(Channel* ch){
  int deserializeYggPhyMessage(YggPhyMessage *msg, unsigned short msglen, void* buffer, int bufferLen) {
  	int checkType = isYggMessage(msg, msglen);
  	if(checkType != 0) {
- 		memcpy(buffer, msg->data, (bufferLen < msg->dataLen ? bufferLen : msg->dataLen));
+ 		memcpy(buffer, msg->data, (size_t) (bufferLen < msg->dataLen ? bufferLen : msg->dataLen));
  	}
  	return checkType;
  }
 
- void setToAddress(WLANAddr *daddr, int ifindex, struct sockaddr_dl *to) {
+ void setToAddress(WLANAddr *daddr, unsigned short ifindex, struct sockaddr_dl *to) {
 
    //TODO this will probably not work
     to->sdl_family = AF_LINK;
@@ -685,7 +683,7 @@ int chreceive(Channel* ch, YggPhyMessage* message) {
 	int recv = recvfrom(ch->sockid, message, DEFAULT_MTU,//sizeof(LKMessage),
 			0, (struct sockaddr *) &from, &fromlen);
 */
-  int buflen = ch->mtu;
+  unsigned int buflen = ch->mtu;
   struct bpf_hdr* buf = (struct bpf_hdr *) malloc(buflen); bzero(buf, buflen);
   int recv = read(ch->sockid_recv, buf, buflen);
 

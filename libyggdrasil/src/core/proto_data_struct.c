@@ -28,14 +28,14 @@ static void* readPayload(void* payload, unsigned short payloadLen, void* ptr, vo
 		return NULL;
 }
 
-void YggMessage_initBcast(YggMessage* msg, short protoID) {
+void YggMessage_initBcast(YggMessage* msg, unsigned short protoID) {
 	setBcastAddr(&msg->destAddr);
 	msg->Proto_id = protoID;
 	msg->dataLen = 0;
 	bzero(msg->data, YGG_MESSAGE_PAYLOAD);
 }
 
-void YggMessage_init(YggMessage* msg, unsigned char addr[6], short protoID) {
+void YggMessage_init(YggMessage* msg, unsigned char addr[6], unsigned short protoID) {
 	memcpy(msg->destAddr.data, addr, WLAN_ADDR_LEN);
 	msg->Proto_id = protoID;
 	msg->dataLen = 0;
@@ -47,7 +47,7 @@ int YggMessage_addPayload(YggMessage* msg, char* payload, unsigned short payload
 		return FAILED;
 
 	memcpy(msg->data+msg->dataLen, payload, payloadLen);
-	msg->dataLen += payloadLen;
+	msg->dataLen = (unsigned short) (msg->dataLen + payloadLen);
 	return SUCCESS;
 }
 
@@ -55,7 +55,7 @@ void* YggMessage_readPayload(YggMessage* msg, void* ptr, void* buffer, unsigned 
 	return readPayload(msg->data, msg->dataLen, ptr, buffer, toRead);
 }
 
-void YggTimer_init(YggTimer* timer, short protoOrigin, short protoDest) {
+void YggTimer_init(YggTimer* timer, unsigned short protoOrigin, unsigned short protoDest) {
 	genUUID(timer->id);
 	timer->proto_origin = protoOrigin;
 	timer->proto_dest = protoDest;
@@ -70,7 +70,7 @@ void YggTimer_init(YggTimer* timer, short protoOrigin, short protoDest) {
 	timer->config.repeat_interval.tv_nsec = 0;
 }
 
-void YggTimer_init_with_uuid(YggTimer* timer, uuid_t uuid, short protoOrigin, short protoDest) {
+void YggTimer_init_with_uuid(YggTimer* timer, uuid_t uuid, unsigned short protoOrigin, unsigned short protoDest) {
 	memcpy(timer->id, uuid, sizeof(uuid_t));
 	timer->proto_origin = protoOrigin;
 	timer->proto_dest = protoDest;
@@ -115,12 +115,12 @@ void YggTimer_addPayload(YggTimer* timer, void* payload, unsigned short payloadL
 	if(timer->payload == NULL){
 		timer->payload = malloc(payloadLen);
 	}else{
-		timer->payload = realloc(timer->payload, timer->length + payloadLen);
+		timer->payload = realloc(timer->payload, (size_t) (timer->length + payloadLen));
 	}
 
 	memcpy(timer->payload+timer->length, payload, payloadLen);
 
-	timer->length += payloadLen;
+	timer->length = (unsigned short) (timer->length + payloadLen);
 }
 
 void* YggTimer_readPayload(YggTimer* timer, void* ptr, void* buffer, unsigned short toRead) {
@@ -135,9 +135,9 @@ void YggTimer_freePayload(YggTimer* timer) {
 	}
 }
 
-void YggEvent_init(YggEvent* ev, short protoOrigin, short notification_id) {
+void YggEvent_init(YggEvent* ev, unsigned short protoOrigin, unsigned short notification_id) {
 	ev->proto_origin = protoOrigin;
-	ev->proto_dest = -1;
+	ev->proto_dest = USHRT_MAX;
 	ev->notification_id = notification_id;
 	ev->length  = 0;
 	ev->payload = NULL;
@@ -147,12 +147,12 @@ void YggEvent_addPayload(YggEvent* ev, void* payload, unsigned short payloadLen)
 	if(ev->payload == NULL){
 		ev->payload = malloc(payloadLen);
 	}else{
-		ev->payload = realloc(ev->payload, ev->length + payloadLen);
+		ev->payload = realloc(ev->payload, (size_t) (ev->length + payloadLen));
 	}
 
 	memcpy(ev->payload+ev->length, payload, payloadLen);
 
-	ev->length += payloadLen;
+	ev->length = (unsigned short) (ev->length + payloadLen);
 }
 
 void* YggEvent_readPayload(YggEvent* ev, void* ptr, void* buffer, unsigned short toRead) {
@@ -167,11 +167,11 @@ void YggEvent_freePayload(YggEvent* ev) {
 	}
 }
 
-void YggRequest_init(YggRequest* req, short protoOrigin, short protoDest, request_type request, short request_id) {
+void YggRequest_init(YggRequest* req, unsigned short protoOrigin, unsigned short protoDest, request_type request, short request_id) {
 	req->proto_origin = protoOrigin;
 	req->proto_dest = protoDest;
 	req->request = request;
-	req->request_type = request_id;
+	req->request_type = (unsigned short) request_id;
 	req->payload = NULL;
 	req->length = 0;
 }
@@ -180,12 +180,12 @@ void YggRequest_addPayload(YggRequest* req, void* payload, unsigned short payloa
 	if(req->payload == NULL){
 		req->payload = malloc(payloadLen);
 	}else{
-		req->payload = realloc(req->payload, req->length + payloadLen);
+		req->payload = realloc(req->payload, (size_t) (req->length + payloadLen));
 	}
 
 	memcpy(req->payload+req->length, payload, payloadLen);
 
-	req->length += payloadLen;
+	req->length = (unsigned short) (req->length + payloadLen);
 }
 
 void* YggRequest_readPayload(YggRequest* req, void* ptr, void* buffer, unsigned short toRead) {
@@ -201,8 +201,8 @@ void YggRequest_freePayload(YggRequest* req) {
 	}
 }
 
-int pushPayload(YggMessage* msg, char* buffer, unsigned short len, short protoID, WLANAddr* newDest) {
-	unsigned short newPayloadSize = len + (sizeof(unsigned short) * 3) + WLAN_ADDR_LEN + msg->dataLen;
+int pushPayload(YggMessage* msg, char* buffer, unsigned short len, unsigned short protoID, WLANAddr* newDest) {
+	unsigned short newPayloadSize = (unsigned short) (len + (sizeof(unsigned short) * 3) + WLAN_ADDR_LEN + msg->dataLen);
 
 	if(newPayloadSize > YGG_MESSAGE_PAYLOAD)
 		return FAILED;
@@ -244,7 +244,7 @@ int popPayload(YggMessage* msg, char* buffer, unsigned short readlen) {
 	memcpy(buffer, tmp, readBytes);
 	tmp += readBytes;
 
-	msg->dataLen = msg->dataLen - sizeof(unsigned short) - readBytes;
+	msg->dataLen = (unsigned short) (msg->dataLen - sizeof(unsigned short) - readBytes);
 	if(msg->dataLen > 0) {
 		memcpy(&msg->Proto_id, tmp, sizeof(unsigned short));
 		tmp += sizeof(unsigned short);
@@ -253,7 +253,7 @@ int popPayload(YggMessage* msg, char* buffer, unsigned short readlen) {
 		unsigned short payloadLen = 0;
 		memcpy(&payloadLen, tmp, sizeof(unsigned short));
 		tmp += sizeof(unsigned short);
-		msg->dataLen = msg->dataLen - ((sizeof(unsigned short) * 2) + WLAN_ADDR_LEN);
+		msg->dataLen = (unsigned short) (msg->dataLen - ((sizeof(unsigned short) * 2) + WLAN_ADDR_LEN));
 #ifdef DEBUG
 		if(payloadLen != msg->dataLen) {
 			char s[2000];
@@ -273,9 +273,9 @@ int popPayload(YggMessage* msg, char* buffer, unsigned short readlen) {
 	return readBytes;
 }
 
-int pushEmptyPayload(YggMessage* msg, short protoID) {
+int pushEmptyPayload(YggMessage* msg, unsigned short protoID) {
 
-	unsigned short newPayloadSize = msg->dataLen + 2*sizeof(short);
+	unsigned short newPayloadSize = (unsigned short) (msg->dataLen + 2*sizeof(short));
 	if(newPayloadSize > YGG_MESSAGE_PAYLOAD)
 		return FAILED;
 
@@ -309,7 +309,7 @@ int popEmptyPayload(YggMessage* msg) {
 		unsigned short payloadLen = 0;
 		memcpy(&payloadLen, tmp, sizeof(unsigned short));
 		tmp += sizeof(unsigned short);
-		msg->dataLen = msg->dataLen - (sizeof(unsigned short)*2);
+		msg->dataLen = (unsigned short) (msg->dataLen - (sizeof(unsigned short)*2));
 
 #ifdef DEBUG
 		if(payloadLen != msg->dataLen) {

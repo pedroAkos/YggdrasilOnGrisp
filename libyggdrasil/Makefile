@@ -1,4 +1,4 @@
-RTEMS_ROOT ?= $(HOME)/Documents/Grisp/grisp-software/rtems-install/rtems/5
+RTEMS_ROOT ?= $(HOME)/Grisp/grisp-software/rtems-install/rtems/5
 RTEMS_BSP ?= atsamv
 
 include $(RTEMS_ROOT)/make/custom/$(RTEMS_BSP).mk

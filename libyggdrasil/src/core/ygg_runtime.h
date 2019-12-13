@@ -207,7 +207,7 @@ queue_t* interceptProtocolQueue(short protoID, short myID);
  * Start all of the registered protocols
  * @return This operations always succeeds, if there are errors they will be logged for later analysis
  */
-int ygg_runtime_start();
+int ygg_runtime_start(void);
 
 int startProtocol(short id, char* proto_args);
 int stopProtocol(short id);
@@ -298,7 +298,7 @@ int deliverReply(YggRequest* res);
  * @return A char array with the mac address
  */
 char* getMyAddr(char* s2);
-WLANAddr* getMyWLANAddr();
+WLANAddr* getMyWLANAddr(void);
 
 /**
  * Fill the parameter addr with the mac address of the process
@@ -312,12 +312,12 @@ void setMyAddr(WLANAddr* addr);
  * It returns the two last characters as a double value
  * @return A double value
  */
-double getTestValue();
+double getTestValue(void);
 
-const char* getChannelIpAddress();
+const char* getChannelIpAddress(void);
 
 void getmyId(uuid_t id) ;
 
-WLANAddr* getBroadcastAddr();
+WLANAddr* getBroadcastAddr(void);
 
 #endif /* CORE_RUNTIME_H_ */

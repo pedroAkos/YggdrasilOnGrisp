@@ -461,6 +461,16 @@ int setupChannelNetwork(Channel* ch, NetworkConfig* ntconf) {
   bzero(ntconf->ip_addr, 16);
   sprintf(ntconf->ip_addr, "169.254.%d.%d", ip1, ip2);
 
+  char c1[16];
+  for(int i = 0; i < 16; i++) {
+    c1[i] = ntconf->ip_addr[i];
+    if(c1[i] == '.')
+      c1[i] = '-';
+  }
+
+  fprintf(stderr, "Hostname -> '%s'\n", c1);
+  sethostname(c1, strlen(c1));
+
 
   //TODO be more dynamic: scan networks, and join/create
   join_network(ntconf);

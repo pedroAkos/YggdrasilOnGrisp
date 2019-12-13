@@ -50,7 +50,7 @@ void ygg_loginit(){
 			}
 			int r = rand() % 10000;
 			sprintf(hostname, "host%04d", r);
-			sethostname(hostname, strlen(hostname));
+			//sethostname(hostname, strlen(hostname));
 			printf("hostname: %s\n", hostname);
 		}else{
 
@@ -69,7 +69,7 @@ void ygg_loginit(){
 
 		int r = rand() % 10000;
 		sprintf(hostname, "host%04d", r);
-		sethostname(hostname, strlen(hostname));
+		//sethostname(hostname, strlen(hostname));
 		printf("hostname: %s\n", hostname);
 	}
 	ygg_log("YGG_RUNTIME", "INIT", "Initialized logging");
